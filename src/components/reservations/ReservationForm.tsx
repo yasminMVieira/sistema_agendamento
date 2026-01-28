@@ -1,14 +1,18 @@
 import { useState, useEffect } from 'react';
-import { InputText } from 'primereact/inputtext';
-import { InputTextarea } from 'primereact/inputtextarea';
-import { Dropdown } from 'primereact/dropdown';
-import { Calendar } from 'primereact/calendar';
-import { Button } from 'primereact/button';
-import { Message } from 'primereact/message';
 import { useReservations } from '../../hooks/useReservations';
 import { EquipmentSelector } from './EquipmentSelector';
 import type { ReservationFormData, Reservation } from '../../types/reservation.types';
 import { validateReservationTime } from '../../utils/validation';
+import { 
+  AlertCircle, 
+  CheckCircle, 
+  AlertTriangle, 
+  Save, 
+  Loader2,
+  Building2,
+  FileText,
+  Clock
+} from 'lucide-react';
 
 interface ReservationFormProps {
   reservation?: Reservation;
@@ -17,6 +21,15 @@ interface ReservationFormProps {
   initialStartTime?: Date;
   initialEndTime?: Date;
 }
+
+const formatDateTimeLocal = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
 
 export const ReservationForm = ({
   reservation,
@@ -108,107 +121,124 @@ export const ReservationForm = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <form onSubmit={handleSubmit} className="space-y-5">
       {errors.length > 0 && (
-        <div className="flex flex-col gap-2">
+        <div className="p-4 bg-red-50 border border-red-200 rounded-xl space-y-2">
           {errors.map((error, index) => (
-            <Message key={index} severity="error" text={error} />
+            <div key={index} className="flex items-start gap-2 text-red-700">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <span className="text-sm">{error}</span>
+            </div>
           ))}
         </div>
       )}
 
       {isAvailable === true && (
-        <Message severity="success" text="✓ Horário disponível" />
+        <div className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700">
+          <CheckCircle className="w-5 h-5 flex-shrink-0" />
+          <span className="text-sm font-medium">Horário disponível para reserva</span>
+        </div>
       )}
 
       {isAvailable === false && (
-        <Message severity="warn" text="✗ Horário indisponível - escolha outro horário" />
+        <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-700">
+          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+          <span className="text-sm font-medium">Horário indisponível - escolha outro horário</span>
+        </div>
       )}
 
-      <div className="flex flex-col gap-2">
-        <label htmlFor="roomId" className="font-medium">
+      <div className="space-y-2">
+        <label htmlFor="roomId" className="block text-sm font-medium text-gray-700 flex items-center gap-2">
+          <Building2 className="w-4 h-4" />
           Sala <span className="text-red-500">*</span>
         </label>
-        <Dropdown
+        <select
           id="roomId"
           value={formData.roomId}
-          options={rooms}
-          onChange={(e) => setFormData({ ...formData, roomId: e.value, selectedEquipment: [] })}
-          optionLabel="name"
-          optionValue="id"
-          placeholder="Selecione uma sala"
+          onChange={(e) => setFormData({ ...formData, roomId: e.target.value, selectedEquipment: [] })}
           required
-        />
+          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+        >
+          <option value="">Selecione uma sala</option>
+          {rooms.map((room) => (
+            <option key={room.id} value={room.id}>
+              {room.name} (Capacidade: {room.capacity})
+            </option>
+          ))}
+        </select>
         {selectedRoom && (
-          <small className="text-gray-600">
+          <p className="text-sm text-gray-500">
             Capacidade: {selectedRoom.capacity} pessoas
-          </small>
+            {selectedRoom.location && ` • ${selectedRoom.location}`}
+          </p>
         )}
       </div>
 
-      <div className="flex flex-col gap-2">
-        <label htmlFor="title" className="font-medium">
+      <div className="space-y-2">
+        <label htmlFor="title" className="block text-sm font-medium text-gray-700 flex items-center gap-2">
+          <FileText className="w-4 h-4" />
           Título <span className="text-red-500">*</span>
         </label>
-        <InputText
+        <input
           id="title"
+          type="text"
           value={formData.title}
           onChange={(e) => setFormData({ ...formData, title: e.target.value })}
           placeholder="Ex: Reunião de planejamento"
           required
+          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
         />
       </div>
 
-      <div className="flex flex-col gap-2">
-        <label htmlFor="description" className="font-medium">
+      <div className="space-y-2">
+        <label htmlFor="description" className="block text-sm font-medium text-gray-700">
           Descrição
         </label>
-        <InputTextarea
+        <textarea
           id="description"
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           placeholder="Detalhes adicionais sobre a reserva..."
           rows={3}
+          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="flex flex-col gap-2">
-          <label htmlFor="startTime" className="font-medium">
-            Data/Hora Início <span className="text-red-500">*</span>
+        <div className="space-y-2">
+          <label htmlFor="startTime" className="block text-sm font-medium text-gray-700 flex items-center gap-2">
+            <Clock className="w-4 h-4" />
+            Início <span className="text-red-500">*</span>
           </label>
-          <Calendar
+          <input
             id="startTime"
-            value={formData.startTime}
-            onChange={(e) => setFormData({ ...formData, startTime: e.value as Date })}
-            showTime
-            hourFormat="24"
-            stepMinute={15}
-            dateFormat="dd/mm/yy"
+            type="datetime-local"
+            value={formatDateTimeLocal(formData.startTime)}
+            onChange={(e) => setFormData({ ...formData, startTime: new Date(e.target.value) })}
             required
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
           />
         </div>
 
-        <div className="flex flex-col gap-2">
-          <label htmlFor="endTime" className="font-medium">
-            Data/Hora Fim <span className="text-red-500">*</span>
+        <div className="space-y-2">
+          <label htmlFor="endTime" className="block text-sm font-medium text-gray-700 flex items-center gap-2">
+            <Clock className="w-4 h-4" />
+            Término <span className="text-red-500">*</span>
           </label>
-          <Calendar
+          <input
             id="endTime"
-            value={formData.endTime}
-            onChange={(e) => setFormData({ ...formData, endTime: e.value as Date })}
-            showTime
-            hourFormat="24"
-            stepMinute={15}
-            dateFormat="dd/mm/yy"
+            type="datetime-local"
+            value={formatDateTimeLocal(formData.endTime)}
+            onChange={(e) => setFormData({ ...formData, endTime: new Date(e.target.value) })}
             required
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
           />
         </div>
       </div>
 
       {selectedRoom && (
-        <div className="flex flex-col gap-2">
-          <label className="font-medium">Equipamentos</label>
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">Equipamentos</label>
           <EquipmentSelector
             equipment={equipment}
             availableEquipment={selectedRoom.availableEquipment}
@@ -220,20 +250,31 @@ export const ReservationForm = ({
         </div>
       )}
 
-      <div className="flex gap-2 justify-end mt-4">
-        <Button
+      <div className="flex items-center gap-3 pt-4">
+        <button
           type="button"
-          label="Cancelar"
-          severity="secondary"
-          outlined
           onClick={onCancel}
-        />
-        <Button
+          className="flex-1 px-4 py-3 text-gray-700 font-semibold bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+        >
+          Cancelar
+        </button>
+        <button
           type="submit"
-          label={reservation ? 'Atualizar' : 'Criar Reserva'}
-          loading={loading}
-          disabled={isAvailable === false}
-        />
+          disabled={loading || isAvailable === false}
+          className="flex-1 px-4 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 disabled:opacity-70 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+        >
+          {loading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Salvando...
+            </>
+          ) : (
+            <>
+              <Save className="w-4 h-4" />
+              {reservation ? 'Atualizar' : 'Criar Reserva'}
+            </>
+          )}
+        </button>
       </div>
     </form>
   );
