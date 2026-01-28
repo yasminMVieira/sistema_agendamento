@@ -5,7 +5,9 @@ import {
   BookMarked, 
   GraduationCap,
   ChevronLeft,
-  Sparkles
+  DoorOpen,
+  Package,
+  Settings
 } from 'lucide-react';
 
 interface MenuItem {
@@ -14,21 +16,46 @@ interface MenuItem {
   path: string;
 }
 
-const menuItems: MenuItem[] = [
-  { 
-    label: 'Painel Inicial', 
-    icon: <LayoutDashboard className="w-5 h-5" />, 
-    path: '/dashboard'
+interface MenuSection {
+  title: string;
+  items: MenuItem[];
+}
+
+const menuSections: MenuSection[] = [
+  {
+    title: 'Menu',
+    items: [
+      { 
+        label: 'Painel Inicial', 
+        icon: <LayoutDashboard className="w-5 h-5" />, 
+        path: '/dashboard'
+      },
+      { 
+        label: 'Agenda', 
+        icon: <Calendar className="w-5 h-5" />, 
+        path: '/calendar'
+      },
+      { 
+        label: 'Minhas Reservas', 
+        icon: <BookMarked className="w-5 h-5" />, 
+        path: '/reservations'
+      },
+    ],
   },
-  { 
-    label: 'Agenda', 
-    icon: <Calendar className="w-5 h-5" />, 
-    path: '/calendar'
-  },
-  { 
-    label: 'Minhas Reservas', 
-    icon: <BookMarked className="w-5 h-5" />, 
-    path: '/reservations'
+  {
+    title: 'Administração',
+    items: [
+      { 
+        label: 'Gerenciar Salas', 
+        icon: <DoorOpen className="w-5 h-5" />, 
+        path: '/admin/rooms'
+      },
+      { 
+        label: 'Equipamentos', 
+        icon: <Package className="w-5 h-5" />, 
+        path: '/admin/equipment'
+      },
+    ],
   },
 ];
 
@@ -79,72 +106,93 @@ export const Sidebar = ({ isCollapsed, onToggle, isMobileOpen, onMobileClose }: 
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          <p className={`text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-3 transition-all duration-300 ${isCollapsed ? 'lg:opacity-0 lg:h-0 lg:mb-0' : ''}`}>
-            Menu
-          </p>
-          
-          {menuItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                onClick={onMobileClose}
-                className={`
-                  group flex items-center gap-3 px-3 py-2.5 rounded-xl
-                  transition-all duration-200 relative
-                  ${isActive 
-                    ? 'bg-blue-50 text-blue-600' 
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }
-                  ${isCollapsed ? 'lg:justify-center' : ''}
-                `}
-                title={isCollapsed ? item.label : ''}
-              >
-                {/* Active Indicator */}
-                {isActive && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-blue-600 rounded-r-full" />
-                )}
-                
-                <span className={`flex-shrink-0 transition-transform ${isActive ? 'scale-110' : 'group-hover:scale-105'}`}>
-                  {item.icon}
-                </span>
-                
-                <span className={`font-medium whitespace-nowrap transition-all duration-300 ${isCollapsed ? 'lg:hidden' : ''}`}>
-                  {item.label}
-                </span>
+        <nav className="flex-1 p-3 space-y-6 overflow-y-auto">
+          {menuSections.map((section) => (
+            <div key={section.title}>
+              <p className={`text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-3 transition-all duration-300 ${isCollapsed ? 'lg:opacity-0 lg:h-0 lg:mb-0 lg:overflow-hidden' : ''}`}>
+                {section.title}
+              </p>
+              
+              <div className="space-y-1">
+                {section.items.map((item) => {
+                  const isActive = location.pathname === item.path;
+                  
+                  return (
+                    <NavLink
+                      key={item.path}
+                      to={item.path}
+                      onClick={onMobileClose}
+                      className={`
+                        group flex items-center gap-3 px-3 py-2.5 rounded-xl
+                        transition-all duration-200 relative
+                        ${isActive 
+                          ? 'bg-blue-50 text-blue-600' 
+                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        }
+                        ${isCollapsed ? 'lg:justify-center' : ''}
+                      `}
+                      title={isCollapsed ? item.label : ''}
+                    >
+                      {/* Active Indicator */}
+                      {isActive && (
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-blue-600 rounded-r-full" />
+                      )}
+                      
+                      <span className={`flex-shrink-0 transition-transform ${isActive ? 'scale-110' : 'group-hover:scale-105'}`}>
+                        {item.icon}
+                      </span>
+                      
+                      <span className={`font-medium whitespace-nowrap transition-all duration-300 ${isCollapsed ? 'lg:hidden' : ''}`}>
+                        {item.label}
+                      </span>
 
-                {/* Tooltip for collapsed state */}
-                {isCollapsed && (
-                  <span className="
-                    hidden lg:group-hover:flex
-                    absolute left-full ml-2 px-2 py-1 
-                    bg-gray-900 text-white text-sm rounded-lg
-                    whitespace-nowrap z-50
-                  ">
-                    {item.label}
-                  </span>
-                )}
-              </NavLink>
-            );
-          })}
+                      {/* Tooltip for collapsed state */}
+                      {isCollapsed && (
+                        <span className="
+                          hidden lg:group-hover:flex
+                          absolute left-full ml-2 px-2 py-1 
+                          bg-gray-900 text-white text-sm rounded-lg
+                          whitespace-nowrap z-50
+                        ">
+                          {item.label}
+                        </span>
+                      )}
+                    </NavLink>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
-        {/* Upgrade Card */}
-        <div className={`p-3 ${isCollapsed ? 'lg:hidden' : ''}`}>
-          <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl p-4 text-white">
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-4 h-4" />
-              <span className="text-xs font-semibold uppercase tracking-wide">Pro</span>
-            </div>
-            <p className="text-sm font-medium mb-1">Upgrade para Pro</p>
-            <p className="text-xs text-blue-100 mb-3">Acesse recursos avançados</p>
-            <button className="w-full py-2 bg-white text-blue-600 text-sm font-semibold rounded-lg hover:bg-blue-50 transition-colors">
-              Saiba mais
-            </button>
-          </div>
+        {/* Settings Link */}
+        <div className={`p-3 ${isCollapsed ? 'lg:px-2' : ''}`}>
+          <NavLink
+            to="/admin/rooms"
+            onClick={onMobileClose}
+            className={`
+              group flex items-center gap-3 px-3 py-2.5 rounded-xl
+              transition-all duration-200
+              text-gray-600 hover:bg-gray-50 hover:text-gray-900
+              ${isCollapsed ? 'lg:justify-center' : ''}
+            `}
+            title={isCollapsed ? 'Configurações' : ''}
+          >
+            <Settings className="w-5 h-5 flex-shrink-0" />
+            <span className={`font-medium whitespace-nowrap transition-all duration-300 ${isCollapsed ? 'lg:hidden' : ''}`}>
+              Configurações
+            </span>
+            {isCollapsed && (
+              <span className="
+                hidden lg:group-hover:flex
+                absolute left-full ml-2 px-2 py-1 
+                bg-gray-900 text-white text-sm rounded-lg
+                whitespace-nowrap z-50
+              ">
+                Configurações
+              </span>
+            )}
+          </NavLink>
         </div>
 
         {/* Footer */}

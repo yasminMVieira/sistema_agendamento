@@ -8,6 +8,8 @@ import { RegisterPage } from './pages/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { CalendarPage } from './pages/CalendarPage';
 import { ReservationsPage } from './pages/ReservationsPage';
+import { RoomsPage } from './pages/admin/RoomsPage';
+import { EquipmentPage } from './pages/admin/EquipmentPage';
 import { initializeStorage } from './utils/localStorage';
 
 // Initialize localStorage with default data
@@ -30,6 +32,9 @@ function App() {
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/calendar" element={<CalendarPage />} />
                 <Route path="/reservations" element={<ReservationsPage />} />
+                {/* Admin Routes */}
+                <Route path="/admin/rooms" element={<RoomsPage />} />
+                <Route path="/admin/equipment" element={<EquipmentPage />} />
               </Route>
             </Route>
 
